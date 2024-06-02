@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: 'IRANSans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('./fonts/IRANSansWeb.woff2')
+    format('woff2'),
+    url('./fonts/IRANSansWeb.woff')
+    format('woff'),
+    url('./fonts/IRANSansWeb.ttf')
+    format('truetype');
+}
+
+@layer base {
+    html {
+        font-family: 'IRANSans', serif;
+    }
+
+    strong {
+        font-weight: bold !important;
+    }
+}
