@@ -34,6 +34,7 @@
               v-if="currentMonth"
               :month="currentMonth"
               :show-previous-button="true"
+              :show-next-button="mobileView"
               :lang="dateType"
               @goToPreviousMonth="goToPreviousMonth"
             />
@@ -53,7 +54,7 @@
         <Years v-else />
       </div>
 
-      <Time />
+      <Time :lang="dateType" />
     </div>
   </div>
 </template>
@@ -100,6 +101,9 @@ export default {
       selectedYear() {
           return this.$store.getters['getSelectedYear']
       },
+      mobileView() {
+          return this.viewportWidth < 768
+      }
   },
   watch: {
       dateType() {

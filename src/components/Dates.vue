@@ -3,7 +3,7 @@
     <div class="flex items-center">
         <button
           v-if="showPreviousButton"
-          class="hover:bg-gray-700 rounded-full p-1 aspect-square w-8 h-8 hidden md:block"
+          class="hover:bg-gray-700 rounded-full p-1 aspect-square w-8 h-8"
           @click="previous"
         >
             &lt;
@@ -13,7 +13,7 @@
 
         <button
           v-if="showNextButton"
-          class="hover:bg-gray-700 rounded-full p-1 aspect-square w-8 h-8 hidden md:block"
+          class="hover:bg-gray-700 rounded-full p-1 aspect-square w-8 h-8"
           @click="next"
         >
             &gt;
