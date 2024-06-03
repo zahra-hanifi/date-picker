@@ -52,6 +52,8 @@
 
         <Years v-else />
       </div>
+
+      <Time />
     </div>
   </div>
 </template>
@@ -63,10 +65,11 @@ import CalenderType from "@/components/CalenderType.vue"
 import Months from "@/components/Months.vue"
 import Years from "@/components/Years.vue"
 import DateType from "@/components/DateType.vue"
+import Time from "@/components/Time.vue"
 
 export default {
   name: "DatePicker",
-  components: { Dates, CalenderType, Months, Years,DateType },
+  components: { Dates, CalenderType, Months, Years,DateType, Time },
   data() {
     return {
       change: 0,

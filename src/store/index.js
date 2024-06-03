@@ -155,6 +155,8 @@ export default new Vuex.Store({
     selectedYear: null,
     minuteOptions: [],
     hourOptions: [],
+    selectedMinute: null,
+    selectedHour: null,
   },
   getters: {
     getEnglishMonths: (state) => state.englishMonth,
@@ -172,6 +174,8 @@ export default new Vuex.Store({
     getSelectedYear: (state) => state.selectedYear,
     getMinuteOptions: (state) => state.minuteOptions,
     getHourOptions: (state) => state.hourOptions,
+    getSelectedMinute: (state) => state.selectedMinute,
+    getSelectedHour: (state) => state.selectedHour,
   },
   mutations: {
     setCurrentDate(state, payload) {
@@ -204,6 +208,12 @@ export default new Vuex.Store({
     setHourOptions(state, payload) {
       state.hourOptions = payload
     },
+    setSelectedMinute(state, payload) {
+      state.selectedMinute = payload
+    },
+    setSelectedHour(state, payload) {
+      state.selectedHour = payload
+    },
   },
   actions: {
     calculatePersianYears({ commit }, currentYear) {
@@ -223,11 +233,7 @@ export default new Vuex.Store({
     calculateMinuteOptions({ commit }) {
       let options = []
       for (let i = 0; i <= 59; i++) {
-        let value = ''
-        if (i < 10) {
-          value = `0${i}`
-        } else value = String(i)
-        options.push(value)
+        options.push(i)
       }
 
       commit('setMinuteOptions', options)
@@ -235,11 +241,7 @@ export default new Vuex.Store({
     calculateHourOptions({ commit }) {
       let options = []
       for (let i = 0; i <= 23; i++) {
-        let value = ''
-        if (i < 10) {
-          value = `0${i}`
-        } else value = String(i)
-        options.push(value)
+        options.push(i)
       }
 
       commit('setHourOptions', options)
