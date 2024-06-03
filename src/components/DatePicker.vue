@@ -1,43 +1,252 @@
 <template>
-  <div class="flex justify-center items-center text-white">
-    <div class="bg-gray-800 shadow py-6 px-8 rounded-lg flex gap-24">
-      <Month v-if="currentMonth" :month="currentMonth" />
+  <div class="flex flex-col gap-y-4 w-full" :dir="direction">
+      <div v-if="selectedFirstDay" class="text-gray-300 text-sm flex items-center gap-x-1 mx-auto">
+          <span>{{ selectedLabel }}:</span>
 
-      <Month v-if="nextMonth" :month="nextMonth" />
+          <div class="flex items-center gap-x-1 text-white">
+              {{ selectedFirstDay.date }}
+
+              <template v-if="selectedSecondDay">
+                  <span class="text-xs">
+                      {{ dateType === 'fa' ? 'تا' : 'until' }}
+                  </span>
+
+                  {{ selectedSecondDay.date }}
+              </template>
+          </div>
+      </div>
+
+    <div
+      class="mx-auto w-full sm:w-fit flex flex-col gap-y-10 items-center text-white bg-gray-800 shadow px-2 py-4 sm:py-6 sm:px-4 rounded-lg min-h-[300px] sm:min-w-[551px]"
+      :class="{ 'max-h-[300px]': currentCalenderType === 'year' }"
+    >
+      <div class="flex flex-col sm:flex-row gap-4 items-center justify-between w-full">
+          <CalenderType v-model="currentCalenderType" :lang="dateType" />
+
+          <DateType
+            :lang="dateType"
+          />
+      </div>
+
+      <div class="flex gap-24 overflow-auto scroller">
+        <template v-if="currentCalenderType === 'dates'">
+            <Dates
+              v-if="currentMonth"
+              :month="currentMonth"
+              :show-previous-button="true"
+              :lang="dateType"
+              @goToPreviousMonth="goToPreviousMonth"
+            />
+
+            <Dates
+              v-if="nextMonth"
+              :month="nextMonth"
+              :show-next-button="true"
+              :lang="dateType"
+              class="hidden md:flex"
+              @goToNextMonth="goToNextMonth"
+            />
+        </template>
+
+        <Months v-else-if="currentCalenderType === 'month'" />
+
+        <Years v-else />
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { JalaliDateTime } from "jalali-date-time";
-import Month from "@/components/Month.vue";
+import {JalaliDateTime} from "jalali-date-time"
+import Dates from "@/components/Dates.vue"
+import CalenderType from "@/components/CalenderType.vue"
+import Months from "@/components/Months.vue"
+import Years from "@/components/Years.vue"
+import DateType from "@/components/DateType.vue"
 
 export default {
   name: "DatePicker",
-  components: { Month },
+  components: { Dates, CalenderType, Months, Years,DateType },
   data() {
     return {
       change: 0,
       currentMonth: null,
       nextMonth: null,
+      currentCalenderType: 'dates',
     };
   },
-  mounted() {
-    const jalali = JalaliDateTime();
-    const today = jalali.toObject(new Date());
-
-    this.currentMonth = jalali.calendar(
-      `${today.year}-${today.month + this.change < 10 ? "0" : ""}${
-        today.month + this.change
-      }`
-    );
-
-    this.nextMonth = jalali.calendar(
-      `${today.year}-${today.month + 1 + this.change < 10 ? "0" : ""}${
-        today.month + 1 + this.change
-      }`
-    );
+  computed: {
+      dateType() {
+          return this.$store.getters['getDateType']
+      },
+      direction() {
+          return this.dateType === 'fa' ? 'rtl' : 'ltr'
+      },
+      selectedLabel() {
+          return this.dateType === 'fa' ? 'تاریخ(های) انتخابی' : 'Selected Date(s)'
+      },
+      selectedFirstDay() {
+          return this.$store.getters['getSelectedFirstDay']
+      },
+      selectedSecondDay() {
+          return this.$store.getters['getSelectedSecondDay']
+      },
+      selectedMonth() {
+          return this.$store.getters['getSelectedMonth']
+      },
+      selectedYear() {
+          return this.$store.getters['getSelectedYear']
+      },
   },
-  methods: {},
+  watch: {
+      dateType() {
+          this.resetMonthAndYear()
+          this.initiateCalender()
+      },
+      selectedMonth() {
+          this.initiateCalender()
+      },
+      selectedYear() {
+          this.initiateCalender()
+      },
+  },
+  mounted() {
+      this.initiateCalender()
+
+      this.$store.dispatch('calculateMinuteOptions')
+      this.$store.dispatch('calculateHourOptions')
+  },
+  methods: {
+      initiateCalender() {
+          if (this.dateType === 'fa') {
+            const jalali = JalaliDateTime();
+            const today = jalali.toObject(new Date());
+            this.$store.commit('setCurrentDate', today)
+
+            this.currentMonth = jalali.calendar(
+                `${this.selectedYear || today.year}-${(this.selectedMonth || today.month) < 10 ? "0" : ""}${
+                    this.selectedMonth || today.month
+                  }`
+            );
+
+            this.nextMonth =
+                (this.selectedMonth ? (this.selectedMonth + 1) : (today.month + 1)) <= 12 ?
+                  jalali.calendar(
+                      `${this.selectedYear || today.year}-${(this.selectedMonth ? (this.selectedMonth + 1) : (today.month + 1)) < 10 ? "0" : ""}${
+                          (this.selectedMonth ? (this.selectedMonth + 1) : (today.month + 1))
+                      }`
+                  )
+                : jalali.calendar(
+                      `${this.selectedYear ? (this.selectedYear + 1) : (today.year + 1)}-01`
+                )
+            this.$store.commit('setSelectedMonth', this.selectedMonth || today.month)
+            this.$store.commit('setSelectedYear', this.selectedYear || today.year)
+          } else {
+              const now = new Date()
+              this.$store.commit('setCurrentDate', {
+                  day: now.getDate(),
+                  hour: now.getHours(),
+                  minute: now.getMinutes(),
+                  month: now.getMonth() + 1,
+                  second: now.getSeconds(),
+                  week: now.getDay() === 0 ? 7 : now.getDay(),
+                  year: now.getFullYear(),
+              })
+              this.$store.commit('setSelectedMonth', this.selectedMonth || now.getMonth() + 1)
+              this.$store.commit('setSelectedYear', this.selectedYear || now.getFullYear())
+
+              this.currentMonth = this.getEnglishCalendar()
+              this.nextMonth = this.getEnglishCalendar(true)
+          }
+      },
+      goToPreviousMonth() {},
+      goToNextMonth() {},
+      getEnglishCalendar(nextMonth = false) {
+          const now = new Date()
+          const monthNames = this.$store.getters['getEnglishMonths']
+
+          const year = this.selectedYear || now.getFullYear()
+          const month =
+              nextMonth
+                  ? (this.selectedMonth ? (this.selectedMonth + 1) : (now.getMonth() + 1))
+                  : this.selectedMonth ? this.selectedMonth : now.getMonth()
+
+          let monthTitle = ''
+          let monthIdentifier = ''
+          let daysInMonth = null
+          let firstDayOfMonth = null
+
+          if (month <= 12) {
+              monthTitle = `${monthNames[this.selectedMonth ? (month - 1) : month].label} ${year}`
+              monthIdentifier = `${year}-${String(this.selectedMonth ? month : (month + 1)).padStart(2, '0')}`
+              daysInMonth = new Date(year, month + 1, 0).getDate()
+              firstDayOfMonth = new Date(year, month, 1).getDay()
+          } else {
+              monthTitle = `${monthNames[0].label} ${year + 1}`
+              monthIdentifier = `${year + 1}-${String(0).padStart(2, '0')}`
+              daysInMonth = new Date(year + 1, 1, 0).getDate()
+              firstDayOfMonth = new Date(year + 1, 0, 1).getDay()
+          }
+
+          const weeks = []
+
+          let week = []
+
+          if (firstDayOfMonth !== 0) {
+              const prevMonthDays = new Date(year, month, 0).getDate()
+              for (let i = firstDayOfMonth; i > 0; i--) {
+                  const prevDay = prevMonthDays - i + 1
+                  const prevMonth = month === 0 ? 11 : month - 1
+                  const prevYear = month === 0 ? year - 1 : year
+                  const date = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-${String(prevDay).padStart(2, '0')}`
+                  week.push({
+                      date: date,
+                      day: String(prevDay).padStart(2, '0'),
+                      month: `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}`
+                  })
+              }
+          }
+
+          for (let day = 1; day <= daysInMonth; day++) {
+              const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+              week.push({
+                  date: date,
+                  day: String(day).padStart(2, '0'),
+                  month: monthIdentifier,
+              })
+
+              if (week.length === 7) {
+                  weeks.push(week)
+                  week = []
+              }
+          }
+
+          if (week.length > 0) {
+              let nextMonthDay = 1
+              while (week.length < 7) {
+                  const nextMonth = month + 2 > 12 ? 1 : month + 2
+                  const nextYear = month + 2 > 12 ? year + 1 : year
+                  const date = `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(nextMonthDay).padStart(2, '0')}`
+                  week.push({
+                      date: date,
+                      day: String(nextMonthDay).padStart(2, '0'),
+                      month: `${nextYear}-${String(nextMonth).padStart(2, '0')}`,
+                  })
+                  nextMonthDay++
+              }
+              weeks.push(week)
+          }
+
+          return {
+              title: monthTitle,
+              month: monthIdentifier,
+              weeks: weeks,
+          }
+      },
+      resetMonthAndYear() {
+          this.$store.commit('setSelectedMonth', null)
+          this.$store.commit('setSelectedYear', null)
+      }
+  },
 };
 </script>

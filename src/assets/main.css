@@ -24,3 +24,21 @@
         font-weight: bold !important;
     }
 }
+
+::-webkit-scrollbar {
+    width: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 5px;
+}
+
+.scroller {
+    scrollbar-color: #888 transparent;
+    scrollbar-width: thin;
+}
