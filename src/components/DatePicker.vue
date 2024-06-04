@@ -172,39 +172,31 @@ export default {
           const now = new Date()
           const monthNames = this.$store.getters['getEnglishMonths']
 
-          const year = this.selectedYear || now.getFullYear()
-          const month =
-              nextMonth
-                  ? (this.selectedMonth ? (this.selectedMonth + 1) : (now.getMonth() + 1))
-                  : this.selectedMonth ? this.selectedMonth : now.getMonth()
+          let year = this.selectedYear || now.getFullYear()
+          let month = this.selectedMonth ? (this.selectedMonth - 1) : now.getMonth()
 
-          let monthTitle = ''
-          let monthIdentifier = ''
-          let daysInMonth = null
-          let firstDayOfMonth = null
-
-          if (month <= 12) {
-              monthTitle = `${monthNames[this.selectedMonth ? (month - 1) : month].label} ${year}`
-              monthIdentifier = `${year}-${String(this.selectedMonth ? month : (month + 1)).padStart(2, '0')}`
-              daysInMonth = new Date(year, month + 1, 0).getDate()
-              firstDayOfMonth = new Date(year, month, 1).getDay()
-          } else {
-              monthTitle = `${monthNames[0].label} ${year + 1}`
-              monthIdentifier = `${year + 1}-${String(0).padStart(2, '0')}`
-              daysInMonth = new Date(year + 1, 1, 0).getDate()
-              firstDayOfMonth = new Date(year + 1, 0, 1).getDay()
+          if (nextMonth) {
+              month++
+              if (month > 11) {
+                  month = 0
+                  year++
+              }
           }
 
-          const weeks = []
+          const monthTitle = `${monthNames[month].label} ${year}`
+          const monthIdentifier = `${year}-${String(month + 1).padStart(2, '0')}`
+          const daysInMonth = new Date(year, month + 1, 0).getDate()
+          const firstDayOfMonth = new Date(year, month, 1).getDay()
 
+          const weeks = []
           let week = []
 
           if (firstDayOfMonth !== 0) {
               const prevMonthDays = new Date(year, month, 0).getDate()
+              const prevMonth = month === 0 ? 11 : month - 1
+              const prevYear = month === 0 ? year - 1 : year
               for (let i = firstDayOfMonth; i > 0; i--) {
                   const prevDay = prevMonthDays - i + 1
-                  const prevMonth = month === 0 ? 11 : month - 1
-                  const prevYear = month === 0 ? year - 1 : year
                   const date = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-${String(prevDay).padStart(2, '0')}`
                   week.push({
                       date: date,
@@ -219,7 +211,7 @@ export default {
               week.push({
                   date: date,
                   day: String(day).padStart(2, '0'),
-                  month: monthIdentifier,
+                  month: monthIdentifier
               })
 
               if (week.length === 7) {
@@ -230,14 +222,14 @@ export default {
 
           if (week.length > 0) {
               let nextMonthDay = 1
+              const nextMonth = month + 1 > 11 ? 0 : month + 1
+              const nextYear = month + 1 > 11 ? year + 1 : year
               while (week.length < 7) {
-                  const nextMonth = month + 2 > 12 ? 1 : month + 2
-                  const nextYear = month + 2 > 12 ? year + 1 : year
-                  const date = `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(nextMonthDay).padStart(2, '0')}`
+                  const date = `${nextYear}-${String(nextMonth + 1).padStart(2, '0')}-${String(nextMonthDay).padStart(2, '0')}`
                   week.push({
                       date: date,
                       day: String(nextMonthDay).padStart(2, '0'),
-                      month: `${nextYear}-${String(nextMonth).padStart(2, '0')}`,
+                      month: `${nextYear}-${String(nextMonth + 1).padStart(2, '0')}`
                   })
                   nextMonthDay++
               }
@@ -247,7 +239,7 @@ export default {
           return {
               title: monthTitle,
               month: monthIdentifier,
-              weeks: weeks,
+              weeks: weeks
           }
       },
       resetMonthAndYear() {
