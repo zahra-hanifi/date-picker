@@ -1,12 +1,18 @@
 export default {
     data() {
-        return  {
+        return {
             viewportWidth: window.innerWidth
         }
     },
     mounted() {
-        document.addEventListener('resize', () => {
-            this.viewportWidth =  window.innerWidth
-        })
+        window.addEventListener('resize', this.updateViewportWidth);
+    },
+    beforeDestroy() {
+        window.removeEventListener('resize', this.updateViewportWidth);
+    },
+    methods: {
+        updateViewportWidth() {
+            this.viewportWidth = window.innerWidth;
+        }
     }
 }
